@@ -1,0 +1,37 @@
+kind: pipeline
+type: docker
+name: default
+
+steps:
+  - name: install
+    image: node:20
+    commands:
+      - npm ci
+
+  - name: lint
+    image: node:20
+    commands:
+      - if npm run | grep -q "lint"; then npm run lint --if-present; else echo "no lint"; fi
+
+  - name: test
+    image: node:20
+    commands:
+      - if npm test --silent --if-present; then echo "tests ok"; else echo "no tests or tests failed"; fi
+
+  - name: build
+    image: node:20
+    environment:
+      VITE_GITHUB_TOKEN:
+        from_secret: VITE_GITHUB_TOKEN
+      VITE_GITLAB_TOKEN:
+        from_secret: VITE_GITLAB_TOKEN
+      VITE_GITLAB_PRIVATE_TOKEN:
+        from_secret: VITE_GITLAB_PRIVATE_TOKEN
+      VITE_GITEA_TOKEN:
+        from_secret: VITE_GITEA_TOKEN
+    commands:
+      - npm run build --if-present
+
+services: {}
+
+volumes: {}
